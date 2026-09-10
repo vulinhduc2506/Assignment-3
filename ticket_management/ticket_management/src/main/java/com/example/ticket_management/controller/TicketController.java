@@ -6,9 +6,13 @@ import com.example.ticket_management.dto.request.TicketCreateRequest;
 import com.example.ticket_management.dto.request.TicketTransitionRequest;
 import com.example.ticket_management.dto.response.CommentResponse;
 import com.example.ticket_management.dto.response.TicketResponse;
+import com.example.ticket_management.enums.Priority;
+import com.example.ticket_management.enums.TicketStatus;
 import com.example.ticket_management.service.TicketService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -54,5 +58,16 @@ public class TicketController {
             @Valid @RequestBody TicketTransitionRequest request) {
         TicketResponse response = ticketService.changeStatus(id, request);
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping
+    public ResponseEntity<Page<TicketResponse>> searchTickets(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) TicketStatus status,
+            @RequestParam(required = false) Priority priority,
+            @RequestParam(required = false) Long assigneeId,
+            Pageable pageable) {
+        Page<TicketResponse> responsePage = ticketService.searchTickets(keyword, status, priority, assigneeId, pageable);
+        return ResponseEntity.ok(responsePage);
     }
 }

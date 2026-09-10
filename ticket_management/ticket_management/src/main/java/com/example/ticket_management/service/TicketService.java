@@ -11,6 +11,7 @@ import com.example.ticket_management.entity.Employee;
 import com.example.ticket_management.entity.Ticket;
 import com.example.ticket_management.entity.TicketComment;
 import com.example.ticket_management.entity.TicketStatusHistory;
+import com.example.ticket_management.enums.Priority;
 import com.example.ticket_management.enums.TicketStatus;
 import com.example.ticket_management.exception.AppException;
 import com.example.ticket_management.exception.ErrorCode;
@@ -20,6 +21,8 @@ import com.example.ticket_management.repository.TicketRepository;
 import com.example.ticket_management.repository.TicketStatusHistoryRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -215,5 +218,22 @@ public class TicketService {
                 .createdAt(ticket.getCreatedAt())
                 .resolvedAt(ticket.getResolvedAt())
                 .build();
+    }
+
+    public Page<TicketResponse> searchTickets(String keyword, TicketStatus status, Priority priority, Long assigneeId, Pageable pageable) {
+        Page<Ticket> ticketPage = ticketRepository.searchTickets(keyword, status, priority, assigneeId, pageable);
+
+        return ticketPage.map(ticket -> TicketResponse.builder()
+                .id(ticket.getId())
+                .ticketCode(ticket.getTicketCode())
+                .title(ticket.getTitle())
+                .description(ticket.getDescription())
+                .priority(ticket.getPriority())
+                .status(ticket.getStatus())
+                .reporterName(ticket.getReporter().getFullName())
+                .assigneeName(ticket.getAssignee() != null ? ticket.getAssignee().getFullName() : null)
+                .createdAt(ticket.getCreatedAt())
+                .resolvedAt(ticket.getResolvedAt())
+                .build());
     }
 }
