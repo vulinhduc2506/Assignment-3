@@ -188,7 +188,57 @@ public class TicketService {
         }
 
         TicketStatus oldStatus = ticket.getStatus();
-        if (oldStatus == request.getNewStatus() || oldStatus == TicketStatus.CLOSED) {
+        TicketStatus newStatus = request.getNewStatus();
+
+        // trạng thái mới và cũ không được trùng, vé CLOSED rồi thì bỏ qua
+        if (oldStatus == newStatus || oldStatus == TicketStatus.CLOSED) {
+            throw new AppException(ErrorCode.INVALID_STATUS_TRANSITION);
+        }
+
+        // boolean kiểm tra xem chuyển trạng thái được không
+        boolean isValidTransition = false;
+
+        switch (oldStatus) {
+            case OPEN:
+                if (newStatus == TicketStatus.IN_PROGRESS) {
+                    // phải có assignee open vé
+                    if (ticket.getAssignee() == null || !ticket.getAssignee().getId().equals(actor.getId())) {
+                        throw new AppException(ErrorCode.INVALID_STATUS_TRANSITION);
+                    }
+                    isValidTransition = true;
+                }
+                break;
+
+            case IN_PROGRESS:
+                if (newStatus == TicketStatus.RESOLVED) {
+                    // giải quyết xong vé cần ghi note giải pháp
+                    if (request.getNote() == null || request.getNote().trim().isEmpty()) {
+                        throw new AppException(ErrorCode.INVALID_STATUS_TRANSITION);
+                    }
+                    isValidTransition = true;
+                }
+                break;
+
+            case RESOLVED:
+                if (newStatus == TicketStatus.CLOSED) {
+                    // chỉ reporter mới được close
+                    if (!ticket.getReporter().getId().equals(actor.getId())) {
+                        throw new AppException(ErrorCode.INVALID_STATUS_TRANSITION);
+                    }
+                    isValidTransition = true;
+                } else if (newStatus == TicketStatus.IN_PROGRESS) {
+                    // mở lại ticket cần note lý do
+                    if (request.getNote() == null || request.getNote().trim().isEmpty()) {
+                        throw new AppException(ErrorCode.INVALID_STATUS_TRANSITION);
+                    }
+                    ticket.setResolvedAt(null);
+                    isValidTransition = true;
+                }
+                break;
+        }
+
+        // Ko vào các trường hợp trên
+        if (!isValidTransition) {
             throw new AppException(ErrorCode.INVALID_STATUS_TRANSITION);
         }
 
