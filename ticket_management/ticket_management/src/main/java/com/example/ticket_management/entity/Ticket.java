@@ -49,9 +49,7 @@ public class Ticket {
     private LocalDateTime createdAt;
 
     @UpdateTimestamp
-    // TODO [MENTOR REVIEW]: Schema là updated_at nhưng Entity đang map update_at. Khi ddl-auto=validate,
-    // ứng dụng phải phát hiện lỗi này thay vì chạy đến lúc truy vấn mới thất bại.
-    @Column(name = "update_at")
+    @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
     @Column(name = "resolved_at")

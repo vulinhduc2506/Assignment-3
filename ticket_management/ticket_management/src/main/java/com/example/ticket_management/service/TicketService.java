@@ -12,6 +12,7 @@ import com.example.ticket_management.entity.Ticket;
 import com.example.ticket_management.entity.TicketComment;
 import com.example.ticket_management.entity.TicketStatusHistory;
 import com.example.ticket_management.enums.Priority;
+import com.example.ticket_management.enums.TicketAction;
 import com.example.ticket_management.enums.TicketStatus;
 import com.example.ticket_management.exception.AppException;
 import com.example.ticket_management.exception.ErrorCode;
@@ -74,8 +75,8 @@ public class TicketService {
         Ticket ticket = ticketRepository.findWithUsersById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.TICKET_NOT_FOUND));
 
-        List<TicketComment> comments = ticketCommentRepository.findByTicketId(id);
-        List<TicketStatusHistory> histories = ticketStatusHistoryRepository.findByTicketId(id);
+        List<TicketComment> comments = ticketCommentRepository.findByTicketIdOrderByCreatedAtDesc(id);
+        List<TicketStatusHistory> histories = ticketStatusHistoryRepository.findByTicket_IdOrderByChangedAtDesc(id);
 
         List<CommentResponse> commentResponses = comments.stream()
                 .map(c -> CommentResponse.builder()
@@ -187,80 +188,38 @@ public class TicketService {
             throw new AppException(ErrorCode.EMPLOYEE_INACTIVE);
         }
 
-        TicketStatus oldStatus = ticket.getStatus();
-        // TODO [MENTOR REVIEW]: Logic đã kiểm soát các cặp trạng thái tốt hơn bản trước, nhưng contract vẫn nhận
-        // newStatus thay vì TicketAction. Hãy tách hàm thuần determineNextStatus(...) để rule dễ đọc và dễ unit test.
-        TicketStatus newStatus = request.getNewStatus();
+        boolean hasAssignee = ticket.getAssignee() != null;
+        boolean actorIsAssignee = hasAssignee && ticket.getAssignee().getId().equals(actor.getId());
+        boolean actorIsReporter = ticket.getReporter().getId().equals(actor.getId());
 
-        // trạng thái mới và cũ không được trùng, vé CLOSED rồi thì bỏ qua
-        if (oldStatus == newStatus || oldStatus == TicketStatus.CLOSED) {
-            throw new AppException(ErrorCode.INVALID_STATUS_TRANSITION);
-        }
+        // 2. Gọi hàm State Machine thuần Java (Ép Client dùng Action, không dùng Status)
+        TicketStatus nextStatus = determineNextStatus(
+                ticket.getStatus(),
+                request.getAction(), // DTO đã được sửa thành Action
+                hasAssignee,
+                actorIsAssignee,
+                actorIsReporter,
+                request.getNote()
+        );
 
-        // boolean kiểm tra xem chuyển trạng thái được không
-        boolean isValidTransition = false;
-
-        switch (oldStatus) {
-            case OPEN:
-                if (newStatus == TicketStatus.IN_PROGRESS) {
-                    // phải có assignee open vé
-                    if (ticket.getAssignee() == null || !ticket.getAssignee().getId().equals(actor.getId())) {
-                        throw new AppException(ErrorCode.INVALID_STATUS_TRANSITION);
-                    }
-                    isValidTransition = true;
-                }
-                break;
-
-            case IN_PROGRESS:
-                if (newStatus == TicketStatus.RESOLVED) {
-                    // giải quyết xong vé cần ghi note giải pháp
-                    if (request.getNote() == null || request.getNote().trim().isEmpty()) {
-                        throw new AppException(ErrorCode.INVALID_STATUS_TRANSITION);
-                    }
-                    isValidTransition = true;
-                }
-                break;
-
-            case RESOLVED:
-                if (newStatus == TicketStatus.CLOSED) {
-                    // chỉ reporter mới được close
-                    if (!ticket.getReporter().getId().equals(actor.getId())) {
-                        throw new AppException(ErrorCode.INVALID_STATUS_TRANSITION);
-                    }
-                    isValidTransition = true;
-                } else if (newStatus == TicketStatus.IN_PROGRESS) {
-                    // mở lại ticket cần note lý do
-                    if (request.getNote() == null || request.getNote().trim().isEmpty()) {
-                        throw new AppException(ErrorCode.INVALID_STATUS_TRANSITION);
-                    }
-                    ticket.setResolvedAt(null);
-                    isValidTransition = true;
-                }
-                break;
-        }
-
-        // Ko vào các trường hợp trên
-        if (!isValidTransition) {
-            throw new AppException(ErrorCode.INVALID_STATUS_TRANSITION);
-        }
-
+        // 3. Khởi tạo lịch sử
         TicketStatusHistory history = new TicketStatusHistory();
-        history.setTicketId(ticket);
-        history.setFromStatus(oldStatus);
-        history.setToStatus(request.getNewStatus());
+        history.setTicket(ticket);
+        history.setFromStatus(ticket.getStatus());
+        history.setToStatus(nextStatus);
         history.setChangedBy(actor);
         history.setNote(request.getNote());
 
-        //thay đổi status thì tạo history mới
-        // TODO [MENTOR REVIEW]: Cần giải thích vì sao ticket và history phải nằm trong cùng transaction,
-        // và kiểm tra thứ tự flush/rollback khi một trong hai lệnh ghi thất bại.
-        ticketStatusHistoryRepository.save(history);
-
-        //cập nhật thông tin Ticket
-        ticket.setStatus(request.getNewStatus());
-        if (request.getNewStatus() == TicketStatus.RESOLVED) {
+        // 4. Cập nhật Ticket
+        ticket.setStatus(nextStatus);
+        if (nextStatus == TicketStatus.RESOLVED) {
             ticket.setResolvedAt(LocalDateTime.now());
+        } else if (nextStatus == TicketStatus.IN_PROGRESS && ticket.getResolvedAt() != null) {
+            ticket.setResolvedAt(null);
         }
+
+        // 5. Lưu lịch sử (Ticket tự động lưu nhờ Dirty Checking)
+        ticketStatusHistoryRepository.save(history);
 
         return TicketResponse.builder()
                 .id(ticket.getId())
@@ -268,7 +227,7 @@ public class TicketService {
                 .title(ticket.getTitle())
                 .status(ticket.getStatus())
                 .reporterName(ticket.getReporter().getFullName())
-                .assigneeName(ticket.getAssignee() != null ? ticket.getAssignee().getFullName() : null)
+                .assigneeName(hasAssignee ? ticket.getAssignee().getFullName() : null)
                 .createdAt(ticket.getCreatedAt())
                 .resolvedAt(ticket.getResolvedAt())
                 .build();
@@ -276,6 +235,7 @@ public class TicketService {
 
     // TODO [MENTOR REVIEW]: Method không có transaction đọc và query không fetch reporter/assignee.
     // Việc map hai quan hệ LAZY có thể gây N+1 hoặc LazyInitializationException tùy cấu hình OSIV.
+    @Transactional
     public Page<TicketResponse> searchTickets(String keyword, TicketStatus status, Priority priority, Long assigneeId, Pageable pageable) {
         Page<Ticket> ticketPage = ticketRepository.searchTickets(keyword, status, priority, assigneeId, pageable);
 
@@ -292,4 +252,43 @@ public class TicketService {
                 .resolvedAt(ticket.getResolvedAt())
                 .build());
     }
+
+    public TicketStatus determineNextStatus(
+            TicketStatus currentStatus,
+            TicketAction action,
+            boolean hasAssignee,
+            boolean actorIsAssignee,
+            boolean actorIsReporter,
+            String note) {
+        switch (currentStatus) {
+            case OPEN:
+                if (action == TicketAction.START && actorIsAssignee && hasAssignee) {
+                    return TicketStatus.IN_PROGRESS;
+                }
+                break;
+
+            case IN_PROGRESS:
+                if (action == TicketAction.RESOLVE && isValidNote(note)) {
+                    return TicketStatus.RESOLVED;
+                }
+                break;
+
+            case RESOLVED:
+                if (action == TicketAction.CLOSE && actorIsReporter) {
+                    return TicketStatus.CLOSED;
+                }
+                if (action == TicketAction.REOPEN && isValidNote(note)) {
+                    return TicketStatus.IN_PROGRESS;
+                }
+                break;
+            case CLOSED:
+                break;
+        }
+        throw new IllegalArgumentException("Thao tác chuyển trạng thái không hợp lệ");
+    }
+
+    private boolean isValidNote(String note) {
+        return note != null && !note.trim().isBlank();
+    }
+
 }

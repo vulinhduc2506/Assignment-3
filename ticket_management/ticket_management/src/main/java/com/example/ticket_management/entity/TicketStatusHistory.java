@@ -2,10 +2,16 @@ package com.example.ticket_management.entity;
 
 import com.example.ticket_management.enums.TicketStatus;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 
+@Getter
+@Setter
+@AllArgsConstructor
 @Entity
 @Table(name = "ticket_status_history")
 public class TicketStatusHistory {
@@ -15,9 +21,7 @@ public class TicketStatusHistory {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "ticket_id", nullable = false)
-    // TODO [MENTOR REVIEW]: Đây là một Ticket entity, không phải Long ticketId. Tên field/getter/setter
-    // cần phản ánh đúng mô hình quan hệ để derived query không gây hiểu nhầm.
-    private Ticket ticketId;
+    private Ticket ticket;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "from_status", nullable = false, length = 20)
@@ -35,75 +39,10 @@ public class TicketStatusHistory {
     private String note;
 
     @CreationTimestamp
-    // TODO [MENTOR REVIEW]: Schema là changed_at nhưng Entity map changed_ad. Đây là lỗi runtime/mapping.
-    @Column(name = "changed_ad")
+    @Column(name = "changed_at")
     private LocalDateTime changedAt;
 
-    public  TicketStatusHistory () {}
-
-    public TicketStatusHistory(Long id, Ticket ticketId, TicketStatus fromStatus, TicketStatus toStatus, Employee changedBy, String note, LocalDateTime changedAt) {
-        this.id = id;
-        this.ticketId = ticketId;
-        this.fromStatus = fromStatus;
-        this.toStatus = toStatus;
-        this.changedBy = changedBy;
-        this.note = note;
-        this.changedAt = changedAt;
+    public TicketStatusHistory() {
     }
 
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public Ticket getTicketId() {
-        return ticketId;
-    }
-
-    public void setTicketId(Ticket ticketId) {
-        this.ticketId = ticketId;
-    }
-
-    public TicketStatus getFromStatus() {
-        return fromStatus;
-    }
-
-    public void setFromStatus(TicketStatus fromStatus) {
-        this.fromStatus = fromStatus;
-    }
-
-    public TicketStatus getToStatus() {
-        return toStatus;
-    }
-
-    public void setToStatus(TicketStatus toStatus) {
-        this.toStatus = toStatus;
-    }
-
-    public Employee getChangedBy() {
-        return changedBy;
-    }
-
-    public void setChangedBy(Employee changedBy) {
-        this.changedBy = changedBy;
-    }
-
-    public String getNote() {
-        return note;
-    }
-
-    public void setNote(String note) {
-        this.note = note;
-    }
-
-    public LocalDateTime getChangedAt() {
-        return changedAt;
-    }
-
-    public void setChangedAt(LocalDateTime changedAt) {
-        this.changedAt = changedAt;
-    }
 }

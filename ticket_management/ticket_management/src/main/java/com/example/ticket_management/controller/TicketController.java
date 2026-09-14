@@ -29,9 +29,7 @@ public class TicketController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    // TODO [MENTOR REVIEW]: Method có @PathVariable id nhưng URL không có /{id}.
-    // Đồng thời mapping này trùng với searchTickets() bên dưới, khiến Spring không xác định được handler.
-    @GetMapping
+    @GetMapping("/{id}")
     public ResponseEntity<TicketResponse> getTicketDetails(@PathVariable Long id) {
         TicketResponse response = ticketService.getTicketDetails(id);
         return ResponseEntity.ok(response);
@@ -62,8 +60,6 @@ public class TicketController {
         return ResponseEntity.ok(response);
     }
 
-    // TODO [MENTOR REVIEW]: Sau khi sửa API detail thành /{id}, giữ endpoint GET /api/tickets
-    // cho tìm kiếm/phân trang. Hãy giải thích vì sao filter là RequestParam chứ không phải PathVariable.
     @GetMapping
     public ResponseEntity<Page<TicketResponse>> searchTickets(
             @RequestParam(required = false) String keyword,

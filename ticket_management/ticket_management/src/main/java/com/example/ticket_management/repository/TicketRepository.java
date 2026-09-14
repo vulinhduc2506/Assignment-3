@@ -18,8 +18,7 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
     @EntityGraph(attributePaths = {"reporter", "assignee"})
     Optional<Ticket> findWithUsersById(Long id);
 
-    // TODO [MENTOR REVIEW]: Query search trả Entity rồi service đọc reporter/assignee LAZY cho từng dòng.
-    // Hãy so sánh @EntityGraph, join fetch và DTO projection; lưu ý fetch join với Page cần xử lý count query.
+    @EntityGraph(attributePaths = {"reporter", "assignee"})
     @Query("SELECT t FROM Ticket t WHERE (:title IS NULL OR LOWER(t.title) LIKE LOWER(CONCAT('%', :title, '%'))) " +
             "AND " +
             "(:status IS NULL OR t.status = :status) " +
