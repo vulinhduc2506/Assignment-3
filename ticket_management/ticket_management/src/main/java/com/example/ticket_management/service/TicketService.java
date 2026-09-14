@@ -188,6 +188,8 @@ public class TicketService {
         }
 
         TicketStatus oldStatus = ticket.getStatus();
+        // TODO [MENTOR REVIEW]: Logic đã kiểm soát các cặp trạng thái tốt hơn bản trước, nhưng contract vẫn nhận
+        // newStatus thay vì TicketAction. Hãy tách hàm thuần determineNextStatus(...) để rule dễ đọc và dễ unit test.
         TicketStatus newStatus = request.getNewStatus();
 
         // trạng thái mới và cũ không được trùng, vé CLOSED rồi thì bỏ qua
@@ -250,6 +252,8 @@ public class TicketService {
         history.setNote(request.getNote());
 
         //thay đổi status thì tạo history mới
+        // TODO [MENTOR REVIEW]: Cần giải thích vì sao ticket và history phải nằm trong cùng transaction,
+        // và kiểm tra thứ tự flush/rollback khi một trong hai lệnh ghi thất bại.
         ticketStatusHistoryRepository.save(history);
 
         //cập nhật thông tin Ticket
@@ -270,6 +274,8 @@ public class TicketService {
                 .build();
     }
 
+    // TODO [MENTOR REVIEW]: Method không có transaction đọc và query không fetch reporter/assignee.
+    // Việc map hai quan hệ LAZY có thể gây N+1 hoặc LazyInitializationException tùy cấu hình OSIV.
     public Page<TicketResponse> searchTickets(String keyword, TicketStatus status, Priority priority, Long assigneeId, Pageable pageable) {
         Page<Ticket> ticketPage = ticketRepository.searchTickets(keyword, status, priority, assigneeId, pageable);
 

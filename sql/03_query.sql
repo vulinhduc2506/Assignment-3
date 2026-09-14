@@ -40,6 +40,8 @@ WHERE t.id IS NULL;
 -- có thể trừ trực tiếp ngày sẽ ra thời gian xử lí 1 ticket sau đó kết hợp hàm AVG sẽ ra thời gian trung bình
 SELECT assignee_id, AVG(resolved_at - created_at) AS avg_processing_time
 FROM tickets
+-- TODO [MENTOR REVIEW]: Ticket CLOSED vẫn có thể đã được xử lý và có resolved_at. Cần xác định KPI
+-- theo resolved_at thay vì loại toàn bộ CLOSED; đồng thời loại bản ghi resolved_at NULL.
 WHERE status = 'RESOLVED'
 GROUP BY assignee_id;
 
@@ -54,6 +56,8 @@ FROM tickets t
 JOIN ticket_comments tc ON t.id = tc.ticket_id
 GROUP BY t.id, t.ticket_code
 HAVING COUNT(tc.id) > 5 
+   -- TODO [MENTOR REVIEW]: EXTRACT(DAY FROM interval) chỉ lấy thành phần ngày, không phải tổng số ngày.
+   -- So sánh trực tiếp MAX(created_at) với CURRENT_TIMESTAMP - INTERVAL '3 days' sẽ rõ và an toàn hơn.
    AND EXTRACT(DAY FROM (CURRENT_TIMESTAMP - MAX(tc.created_at))) > 3;
   
 --6 
@@ -66,6 +70,8 @@ WITH LatestHistoryTime AS (
 ),
 -- Bước 2: Bắt lấy trạng thái (to_status) tại chính cái thời gian mới nhất đó
 LatestHistoryDetail AS (
+    -- TODO [MENTOR REVIEW]: Nếu hai history có cùng changed_at lớn nhất, query có thể trả hai dòng/ticket.
+    -- Hãy dùng ROW_NUMBER với tiêu chí phụ ổn định (ví dụ id DESC) để chọn đúng một bản ghi mới nhất.
     SELECT h.ticket_id, h.to_status
     FROM ticket_status_history h
     INNER JOIN LatestHistoryTime lht 

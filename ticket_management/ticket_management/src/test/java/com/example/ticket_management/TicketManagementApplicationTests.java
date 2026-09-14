@@ -10,4 +10,7 @@ class TicketManagementApplicationTests {
 	void contextLoads() {
 	}
 
+	// TODO [MENTOR REVIEW]: contextLoads không kiểm chứng business rule. Bổ sung test cho state transition,
+	// mapping fullName, hai endpoint GET, rollback ticket/history và optimistic locking.
+
 }

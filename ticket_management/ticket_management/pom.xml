@@ -27,6 +27,8 @@
 		<url/>
 	</scm>
 	<properties>
+		<!-- TODO [MENTOR REVIEW]: Đề bài yêu cầu Java 17 nhưng project đang cấu hình Java 21.
+		     Hãy thống nhất JDK chạy Maven, java.version và phiên bản Spring Boot tương thích. -->
 		<java.version>21</java.version>
 	</properties>
 	<dependencies>
@@ -64,12 +66,15 @@
 			<scope>test</scope>
 		</dependency>
 		<!-- Source: https://mvnrepository.com/artifact/org.projectlombok/lombok -->
-		<dependency>
-			<groupId>org.projectlombok</groupId>
-			<artifactId>lombok</artifactId>
-			<version>1.18.48</version>
-			<scope>compile</scope>
-		</dependency>
+			<dependency>
+				<groupId>org.projectlombok</groupId>
+				<artifactId>lombok</artifactId>
+				<version>1.18.48</version>
+				<scope>compile</scope>
+			</dependency>
+			<!-- TODO [MENTOR REVIEW]: Không được chỉ kiểm tra Lombok bằng IDE. Hãy chạy Maven clean compile
+			     và cấu hình dependency/annotation processing theo convention của Spring Boot để getter,
+			     setter, builder và constructor thực sự được sinh trong quá trình build. -->
 	</dependencies>
 
 	<build>

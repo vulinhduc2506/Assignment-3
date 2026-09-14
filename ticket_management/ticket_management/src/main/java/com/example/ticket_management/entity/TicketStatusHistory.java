@@ -15,6 +15,8 @@ public class TicketStatusHistory {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "ticket_id", nullable = false)
+    // TODO [MENTOR REVIEW]: Đây là một Ticket entity, không phải Long ticketId. Tên field/getter/setter
+    // cần phản ánh đúng mô hình quan hệ để derived query không gây hiểu nhầm.
     private Ticket ticketId;
 
     @Enumerated(EnumType.STRING)
@@ -33,6 +35,7 @@ public class TicketStatusHistory {
     private String note;
 
     @CreationTimestamp
+    // TODO [MENTOR REVIEW]: Schema là changed_at nhưng Entity map changed_ad. Đây là lỗi runtime/mapping.
     @Column(name = "changed_ad")
     private LocalDateTime changedAt;
 

@@ -1,4 +1,6 @@
 CREATE TABLE employees (
+    -- TODO [MENTOR REVIEW]: Java dùng Long nhưng SERIAL/FK INT là kiểu 32-bit. Hãy thống nhất kiểu ID
+    -- giữa PostgreSQL và Entity (ví dụ BIGSERIAL/BIGINT nếu giữ Long).
     id SERIAL PRIMARY KEY,
     username VARCHAR(50) NOT NULL UNIQUE,
     full_name VARCHAR(100) NOT NULL,
@@ -33,9 +35,14 @@ CREATE TABLE ticket_comments (
 CREATE TABLE ticket_status_history (
     id SERIAL PRIMARY KEY,
     ticket_id INT NOT NULL REFERENCES tickets(id),
+    -- TODO [MENTOR REVIEW]: SQL cho phép NULL để lưu trạng thái khởi tạo, nhưng Entity đặt nullable=false.
+    -- Chọn một contract thống nhất và giải thích trạng thái lịch sử đầu tiên được biểu diễn thế nào.
     from_status VARCHAR(20),
     to_status VARCHAR(20) NOT NULL,
     changed_by INT NOT NULL REFERENCES employees(id),
     note VARCHAR(255),
     changed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- TODO [MENTOR REVIEW]: Bổ sung index có căn cứ cho các khóa ngoại và điều kiện tìm kiếm thường dùng;
+-- không tạo index theo cảm tính, cần nêu query nào được hưởng lợi và chi phí khi INSERT/UPDATE.

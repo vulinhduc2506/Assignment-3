@@ -34,6 +34,8 @@ public class EmployeeService {
         return EmployeeResponse.builder()
                 .id(savedEmployee.getId())
                 .username(savedEmployee.getUsername())
+                // TODO [MENTOR REVIEW]: fullName đang lấy nhầm username nên response sai dữ liệu dù DB lưu đúng.
+                // Hãy sửa mapping và bổ sung test bắt được lỗi này.
                 .fullName(savedEmployee.getUsername())
                 .email(savedEmployee.getEmail())
                 .active(savedEmployee.isActive())
