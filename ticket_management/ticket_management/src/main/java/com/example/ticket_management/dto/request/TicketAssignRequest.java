@@ -9,5 +9,10 @@ import org.springframework.web.bind.annotation.GetMapping;
 @Getter
 public class TicketAssignRequest {
     @NotNull(message = "Bắt buộc truyền ID của assignee")
-    private Long assigneeId;
+    private Long newAssigneeId;
+
+    @NotNull(message = "Bắt buộc phải truyền ID người thực hiện")
+    private Long actorId;
+
+    private String reason;
 }

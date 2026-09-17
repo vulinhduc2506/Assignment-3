@@ -11,7 +11,10 @@ public enum ErrorCode {
     INVALID_STATUS_TRANSITION(HttpStatus.CONFLICT, "Không thể chuyển sang trạng thái này"),
     ASSIGNEE_REQUIRED(HttpStatus.BAD_REQUEST, "Bắt buộc phải có người xử lý"),
     COMMENT_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "Không thể comment vào ticket đã đóng"),
-    CONCURRENT_UPDATE(HttpStatus.CONFLICT, "Dữ liệu đã bị thay đổi");
+    CONCURRENT_UPDATE(HttpStatus.CONFLICT, "Dữ liệu đã bị thay đổi"),
+    INVALID_REQUEST(HttpStatus.BAD_REQUEST, "Request thiếu hoặc sai dữ liệu"),
+    INVALID_ASSIGNMENT(HttpStatus.BAD_REQUEST, "Phân công không hợp lệ"),
+    INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "Lỗi không dự kiến phía server");
 
     private final HttpStatus status;
     private final String message;

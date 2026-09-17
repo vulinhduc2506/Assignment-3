@@ -4,22 +4,14 @@ import com.example.ticket_management.dto.request.CommentCreateRequest;
 import com.example.ticket_management.dto.request.TicketAssignRequest;
 import com.example.ticket_management.dto.request.TicketCreateRequest;
 import com.example.ticket_management.dto.request.TicketTransitionRequest;
-import com.example.ticket_management.dto.response.CommentResponse;
-import com.example.ticket_management.dto.response.HistoryResponse;
-import com.example.ticket_management.dto.response.TicketResponse;
-import com.example.ticket_management.entity.Employee;
-import com.example.ticket_management.entity.Ticket;
-import com.example.ticket_management.entity.TicketComment;
-import com.example.ticket_management.entity.TicketStatusHistory;
+import com.example.ticket_management.dto.response.*;
+import com.example.ticket_management.entity.*;
 import com.example.ticket_management.enums.Priority;
 import com.example.ticket_management.enums.TicketAction;
 import com.example.ticket_management.enums.TicketStatus;
 import com.example.ticket_management.exception.AppException;
 import com.example.ticket_management.exception.ErrorCode;
-import com.example.ticket_management.repository.EmployeeRepository;
-import com.example.ticket_management.repository.TicketCommentRepository;
-import com.example.ticket_management.repository.TicketRepository;
-import com.example.ticket_management.repository.TicketStatusHistoryRepository;
+import com.example.ticket_management.repository.*;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -28,6 +20,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -37,6 +30,7 @@ public class TicketService {
     private final EmployeeRepository employeeRepository;
     private final TicketCommentRepository ticketCommentRepository;
     private final TicketStatusHistoryRepository ticketStatusHistoryRepository;
+    private final TicketAssignmentHistoryRepository ticketAssignmentHistoryRepository;
 
     @Transactional
     public TicketResponse createTicket(TicketCreateRequest request) {
@@ -113,7 +107,7 @@ public class TicketService {
     }
 
     @Transactional
-    public TicketResponse assignTicket(Long ticketId, TicketAssignRequest request) {
+    public TicketAssignmentResponse assignTicket(Long ticketId, TicketAssignRequest request) {
         Ticket ticket = ticketRepository.findWithUsersById(ticketId)
                 .orElseThrow(() -> new AppException(ErrorCode.TICKET_NOT_FOUND));
 
@@ -121,26 +115,50 @@ public class TicketService {
             throw new AppException(ErrorCode.INVALID_STATUS_TRANSITION);
         }
 
-        Employee assignee = employeeRepository.findById(request.getAssigneeId())
+        Employee actor = employeeRepository.findById(request.getActorId())
                 .orElseThrow(() -> new AppException(ErrorCode.EMPLOYEE_NOT_FOUND));
 
-        if (!assignee.isActive()) {
+        Employee newAssignee = employeeRepository.findById(request.getNewAssigneeId())
+                .orElseThrow(() -> new AppException(ErrorCode.EMPLOYEE_NOT_FOUND));
+
+        if (!newAssignee.isActive()) {
             throw new AppException(ErrorCode.EMPLOYEE_INACTIVE);
         }
 
-        ticket.setAssignee(assignee);
+        Employee oldAssignee = ticket.getAssignee();
 
-        return TicketResponse.builder()
-                .id(ticket.getId())
-                .ticketCode(ticket.getTicketCode())
-                .title(ticket.getTitle())
-                .description(ticket.getDescription())
-                .priority(ticket.getPriority())
-                .status(ticket.getStatus())
-                .reporterName(ticket.getReporter().getFullName())
-                .assigneeName(ticket.getAssignee().getFullName())
-                .createdAt(ticket.getCreatedAt())
-                .resolvedAt(ticket.getResolvedAt())
+        if (oldAssignee != null && oldAssignee.getId().equals(request.getNewAssigneeId())) {
+            throw new AppException(ErrorCode.INVALID_ASSIGNMENT);
+        }
+
+        String reason = request.getReason();
+        if (oldAssignee != null) {
+            if (reason == null || reason.trim().isEmpty()) {
+                throw new AppException(ErrorCode.INVALID_REQUEST);
+            }
+        } else {
+            if (reason != null && reason.trim().isEmpty()) {
+                reason = null;
+            }
+        }
+
+        TicketAssignmentHistory history = new TicketAssignmentHistory();
+        history.setTicket(ticket);
+        history.setOldAssignee(oldAssignee); // Có thể null
+        history.setNewAssignee(newAssignee);
+        history.setChangedBy(actor);
+        history.setReason(reason);
+
+        history = ticketAssignmentHistoryRepository.save(history);
+        ticket.setAssignee(newAssignee);
+
+        return TicketAssignmentResponse.builder()
+                .ticketId(ticket.getId())
+                .oldAssigneeId(oldAssignee != null ? oldAssignee.getId() : null)
+                .newAssigneeId(newAssignee.getId())
+                .changedBy(actor.getId())
+                .reason(history.getReason())
+                .changedAt(history.getChangedAt()) // Lấy thời gian vừa sinh ra từ DB
                 .build();
 
     }
@@ -193,14 +211,21 @@ public class TicketService {
         boolean actorIsReporter = ticket.getReporter().getId().equals(actor.getId());
 
         // 2. Gọi hàm State Machine thuần Java (Ép Client dùng Action, không dùng Status)
-        TicketStatus nextStatus = determineNextStatus(
-                ticket.getStatus(),
-                request.getAction(), // DTO đã được sửa thành Action
-                hasAssignee,
-                actorIsAssignee,
-                actorIsReporter,
-                request.getNote()
-        );
+        TicketStatus nextStatus;
+        try {
+            nextStatus = determineNextStatus(
+                    ticket.getStatus(),
+                    request.getAction(),
+                    hasAssignee,
+                    actorIsAssignee,
+                    actorIsReporter,
+                    request.getNote()
+            );
+        } catch (IllegalArgumentException ex) {
+            // Hứng lỗi Java thuần và ném thành lỗi nghiệp vụ để GlobalExceptionHandler tóm lấy
+            throw new AppException(ErrorCode.INVALID_STATUS_TRANSITION);
+        }
+
 
         // 3. Khởi tạo lịch sử
         TicketStatusHistory history = new TicketStatusHistory();
@@ -209,6 +234,8 @@ public class TicketService {
         history.setToStatus(nextStatus);
         history.setChangedBy(actor);
         history.setNote(request.getNote());
+
+        ticketStatusHistoryRepository.save(history);
 
         // 4. Cập nhật Ticket
         ticket.setStatus(nextStatus);
@@ -233,8 +260,6 @@ public class TicketService {
                 .build();
     }
 
-    // TODO [MENTOR REVIEW]: Method không có transaction đọc và query không fetch reporter/assignee.
-    // Việc map hai quan hệ LAZY có thể gây N+1 hoặc LazyInitializationException tùy cấu hình OSIV.
     @Transactional
     public Page<TicketResponse> searchTickets(String keyword, TicketStatus status, Priority priority, Long assigneeId, Pageable pageable) {
         Page<Ticket> ticketPage = ticketRepository.searchTickets(keyword, status, priority, assigneeId, pageable);
@@ -291,4 +316,29 @@ public class TicketService {
         return note != null && !note.trim().isBlank();
     }
 
+    @Transactional
+    public List<AssignmentHistoryResponse> getAssignmentHistories(Long ticketId) {
+
+        ticketRepository.findById(ticketId)
+                .orElseThrow(() -> new AppException(ErrorCode.TICKET_NOT_FOUND));
+
+        List<TicketAssignmentHistory> ticketAssignmentHistoryList =
+                ticketAssignmentHistoryRepository.findByOrderByChangedAtDescIdDesc(ticketId);
+
+        // 3. Mapping từ Entity sang DTO
+        return ticketAssignmentHistoryList.stream()
+                .map(history -> AssignmentHistoryResponse.builder()
+                        .id(history.getId())
+                        .oldAssigneeId(history.getOldAssignee() != null ? history.getOldAssignee().getId() : null)
+                        .oldAssigneeName(history.getOldAssignee() != null ? history.getOldAssignee().getFullName() : null)
+                        .newAssigneeId(history.getNewAssignee().getId())
+                        .newAssigneeName(history.getNewAssignee().getFullName())
+                        .changedById(history.getChangedBy().getId())
+                        .changedByName(history.getChangedBy().getFullName())
+
+                        .reason(history.getReason())
+                        .changedAt(history.getChangedAt())
+                        .build())
+                .toList();
+    }
 }

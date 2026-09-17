@@ -4,7 +4,9 @@ import com.example.ticket_management.dto.request.CommentCreateRequest;
 import com.example.ticket_management.dto.request.TicketAssignRequest;
 import com.example.ticket_management.dto.request.TicketCreateRequest;
 import com.example.ticket_management.dto.request.TicketTransitionRequest;
+import com.example.ticket_management.dto.response.AssignmentHistoryResponse;
 import com.example.ticket_management.dto.response.CommentResponse;
+import com.example.ticket_management.dto.response.TicketAssignmentResponse;
 import com.example.ticket_management.dto.response.TicketResponse;
 import com.example.ticket_management.enums.Priority;
 import com.example.ticket_management.enums.TicketStatus;
@@ -16,6 +18,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/tickets")
@@ -36,10 +40,10 @@ public class TicketController {
     }
 
     @PutMapping("/{id}/assignee")
-    public ResponseEntity<TicketResponse> assignTicket(
+    public ResponseEntity<TicketAssignmentResponse> assignTicket(
             @PathVariable Long id,
             @Valid @RequestBody TicketAssignRequest request) {
-        TicketResponse response = ticketService.assignTicket(id, request);
+        TicketAssignmentResponse response = ticketService.assignTicket(id, request);
         return ResponseEntity.ok(response);
     }
 
@@ -69,5 +73,11 @@ public class TicketController {
             Pageable pageable) {
         Page<TicketResponse> responsePage = ticketService.searchTickets(keyword, status, priority, assigneeId, pageable);
         return ResponseEntity.ok(responsePage);
+    }
+
+    @GetMapping("/{id}/assignment-histories")
+    public ResponseEntity<List<AssignmentHistoryResponse>> getAssignmentHistories(@PathVariable Long id) {
+        List<AssignmentHistoryResponse> response = ticketService.getAssignmentHistories(id);
+        return ResponseEntity.ok(response);
     }
 }

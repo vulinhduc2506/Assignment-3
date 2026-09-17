@@ -23,7 +23,7 @@ CREATE TABLE tickets (
 );
 
 CREATE TABLE ticket_comments (
-    id SERIAL PRIMARY KEY,
+    id BIGSERIAL PRIMARY KEY,
     ticket_id BIGINT NOT NULL REFERENCES tickets(id),
     author_id BIGINT NOT NULL REFERENCES employees(id),
     content TEXT NOT NULL CHECK (TRIM(content) <> ''),
@@ -31,7 +31,7 @@ CREATE TABLE ticket_comments (
 );
 
 CREATE TABLE ticket_status_history (
-    id SERIAL PRIMARY KEY,
+    id BIGSERIAL PRIMARY KEY,
     ticket_id BIGINT NOT NULL REFERENCES tickets(id),
     from_status VARCHAR(20),
     to_status VARCHAR(20) NOT NULL,
@@ -40,6 +40,17 @@ CREATE TABLE ticket_status_history (
     changed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE ticket_assignment_history (
+    id BIGSERIAL PRIMARY KEY,
+    ticket_id BIGINT NOT NULL REFERENCES tickets(id),
+    old_assignee_id BIGINT REFERENCES employees(id),
+    new_assignee_id BIGINT NOT NULL REFERENCES employees(id),
+    changed_by BIGINT NOT NULL REFERENCES employees(id),
+    reason VARCHAR(255) CHECK (reason IS NULL OR TRIM(reason) <> ''),
+    changed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
 CREATE INDEX idx_tickets_status_priority ON tickets(status, priority);
 CREATE INDEX idx_tickets_assignee ON tickets(assignee_id);
 CREATE INDEX idx_history_ticket_id ON ticket_status_history(ticket_id);
+CREATE INDEX idx_assignment_history_ticket_id_time ON ticket_assignment_history (ticket_id, changed_at DESC, id DESC);
