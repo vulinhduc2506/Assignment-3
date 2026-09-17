@@ -1,0 +1,15 @@
+$kind: http-request
+description: ""
+url: http://localhost:8080/api/tickets/13/comments
+method: POST
+body:
+  type: json
+  content: "{\r
+
+    \  \"authorId\": 2,\r
+
+    \  \"content\": \"Anh đợi em 5 phút\"\r
+
+    }"
+examples: .resources/Thêm bình luận vào ticket.resources/examples
+order: 4502656058275986

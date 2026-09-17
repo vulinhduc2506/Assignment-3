@@ -1,0 +1,19 @@
+$kind: http-request
+description: ""
+url: http://localhost:8080/api/tickets
+method: POST
+body:
+  type: json
+  content: "{\r
+
+    \  \"title\": \"Máy in tầng 3 bị kẹt giấy\",\r
+
+    \  \"description\": \"Màn hình báo lỗi, kẹt giấy bên trong cuộn cuốn.\",\r
+
+    \  \"priority\": \"HIGH\",\r
+
+    \  \"reporterId\": 1\r
+
+    }"
+examples: .resources/Tạo ticket mới.resources/examples
+order: 4502608435790349

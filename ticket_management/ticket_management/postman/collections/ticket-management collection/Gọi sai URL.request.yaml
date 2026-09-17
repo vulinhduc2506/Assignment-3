@@ -1,0 +1,17 @@
+$kind: http-request
+description: ""
+url: http://localhost:8080/api/ticketssss/1/assignee
+method: PUT
+body:
+  type: json
+  content: "{\r
+
+    \    \"newAssigneeId\": 3,\r
+
+    \    \"actorId\": 1,\r
+
+    \    \"reason\": \"\"\r
+
+    }"
+examples: .resources/Gọi sai URL.resources/examples
+order: 4502020106788378

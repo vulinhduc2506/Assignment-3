@@ -1,0 +1,6 @@
+$kind: http-request
+description: ""
+url: http://localhost:8080/api/tickets/9999/assignment-histories
+method: GET
+examples: .resources/Lấy lịch sử của Ticket không tồn tại.resources/examples
+order: 4501474744933921

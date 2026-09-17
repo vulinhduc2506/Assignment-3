@@ -1,0 +1,35 @@
+$kind: http-example
+request:
+  url: http://localhost:8080/api/tickets/4/transitions
+  method: POST
+  body:
+    type: json
+    content: "{\r
+
+      \    \"actorId\": 2,\r
+
+      \    \"action\": \"RESOLVE\",\r
+
+      \    \"note\": \"đóng\"\r
+
+      }"
+response:
+  statusCode: 409
+  statusText: ""
+  headers:
+    content-type: application/json
+    transfer-encoding: chunked
+    date: Thu, 17 Sep 2026 08:26:25 GMT
+    keep-alive: timeout=60
+    connection: keep-alive
+  body:
+    type: json
+    content: |-
+      {
+        "code": "INVALID_STATUS_TRANSITION",
+        "message": "Không thể chuyển sang trạng thái này",
+        "path": "/api/tickets/4/transitions",
+        "status": 409,
+        "timestamp": "2026-09-17T15:26:25.5351788"
+      }
+order: 3262703911063973

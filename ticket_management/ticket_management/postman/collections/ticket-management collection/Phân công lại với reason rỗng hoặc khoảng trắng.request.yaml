@@ -1,0 +1,17 @@
+$kind: http-request
+description: ""
+url: http://localhost:8080/api/tickets/3/assignee
+method: PUT
+body:
+  type: json
+  content: "{\r
+
+    \    \"newAssigneeId\": 3,\r
+
+    \    \"actorId\": 1,\r
+
+    \    \"reason\": \"   \"\r
+
+    }"
+examples: .resources/Phân công lại với reason rỗng hoặc khoảng trắng.resources/examples
+order: 4400791771703095

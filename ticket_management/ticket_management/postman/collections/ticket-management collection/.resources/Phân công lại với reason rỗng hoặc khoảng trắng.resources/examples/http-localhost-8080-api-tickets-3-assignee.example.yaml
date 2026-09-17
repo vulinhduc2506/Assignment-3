@@ -1,0 +1,35 @@
+$kind: http-example
+name: http://localhost:8080/api/tickets/3/assignee
+request:
+  url: http://localhost:8080/api/tickets/3/assignee
+  method: PUT
+  body:
+    type: json
+    content: "{\r
+
+      \    \"newAssigneeId\": 3,\r
+
+      \    \"actorId\": 1,\r
+
+      \    \"reason\": \"   \"\r
+
+      }"
+response:
+  statusCode: 400
+  statusText: ""
+  headers:
+    content-type: application/json
+    transfer-encoding: chunked
+    date: Thu, 17 Sep 2026 06:39:43 GMT
+    connection: close
+  body:
+    type: json
+    content: |-
+      {
+        "code": "INVALID_REQUEST",
+        "message": "Request thiếu hoặc sai dữ liệu",
+        "path": "/api/tickets/3/assignee",
+        "status": 400,
+        "timestamp": "2026-09-17T13:39:43.7144281"
+      }
+order: 1789627189717

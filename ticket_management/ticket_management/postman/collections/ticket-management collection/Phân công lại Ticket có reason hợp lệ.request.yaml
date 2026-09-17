@@ -1,0 +1,17 @@
+$kind: http-request
+description: ""
+url: http://localhost:8080/api/tickets/2/assignee
+method: PUT
+body:
+  type: json
+  content: "{\r
+
+    \    \"newAssigneeId\": 4,\r
+
+    \    \"actorId\": 1,\r
+
+    \    \"reason\": \"Đổi người vì chuyên viên cũ đang nghỉ phép\"\r
+
+    }"
+examples: .resources/Phân công lại Ticket có reason hợp lệ.resources/examples
+order: 3437376174588711

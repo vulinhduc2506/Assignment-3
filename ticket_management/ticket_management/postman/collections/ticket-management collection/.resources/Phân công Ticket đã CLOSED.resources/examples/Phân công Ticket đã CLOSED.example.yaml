@@ -1,0 +1,35 @@
+$kind: http-example
+request:
+  url: http://localhost:8080/api/tickets/6/assignee
+  method: PUT
+  body:
+    type: json
+    content: "{\r
+
+      \    \"newAssigneeId\": 5,\r
+
+      \    \"actorId\": 1,\r
+
+      \    \"reason\": \"\"\r
+
+      }"
+response:
+  statusCode: 409
+  statusText: ""
+  headers:
+    content-type: application/json
+    transfer-encoding: chunked
+    date: Thu, 17 Sep 2026 06:22:51 GMT
+    keep-alive: timeout=60
+    connection: keep-alive
+  body:
+    type: json
+    content: |-
+      {
+        "code": "INVALID_STATUS_TRANSITION",
+        "message": "Không thể chuyển sang trạng thái này",
+        "path": "/api/tickets/6/assignee",
+        "status": 409,
+        "timestamp": "2026-09-17T13:22:51.6972879"
+      }
+order: 1789626190705

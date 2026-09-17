@@ -1,0 +1,17 @@
+$kind: http-request
+description: ""
+url: http://localhost:8080/api/tickets/13/transitions
+method: POST
+body:
+  type: json
+  content: "{\r
+
+    \    \"actorId\": 1,\r
+
+    \    \"action\": \"START\",\r
+
+    \    \"note\": \"đã tiếp nhận và đi kiểm tra\"\r
+
+    }"
+examples: .resources/Đổi trạng thái Ticket.resources/examples
+order: 4503358415837897

@@ -1,0 +1,36 @@
+$kind: http-example
+request:
+  url: http://localhost:8080/api/tickets/2/assignee
+  method: PUT
+  body:
+    type: json
+    content: "{\r
+
+      \    \"newAssigneeId\": 4,\r
+
+      \    \"actorId\": 1,\r
+
+      \    \"reason\": \"Đổi người vì chuyên viên cũ đang nghỉ phép\"\r
+
+      }"
+response:
+  statusCode: 200
+  statusText: ""
+  headers:
+    content-type: application/json
+    transfer-encoding: chunked
+    date: Thu, 17 Sep 2026 06:24:14 GMT
+    keep-alive: timeout=60
+    connection: keep-alive
+  body:
+    type: json
+    content: |-
+      {
+        "changedAt": "2026-09-17T13:24:14.868739",
+        "changedBy": 1,
+        "newAssigneeId": 4,
+        "oldAssigneeId": 3,
+        "reason": "Đổi người vì chuyên viên cũ đang nghỉ phép",
+        "ticketId": 2
+      }
+order: 1789626259901

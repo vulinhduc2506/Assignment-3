@@ -1,0 +1,6 @@
+$kind: http-request
+description: ""
+url: http://localhost:8080/api/tickets/5
+method: GET
+examples: .resources/Xem chi tiết Ticket.resources/examples
+order: 4503351171972535

@@ -1,0 +1,34 @@
+$kind: http-example
+request:
+  url: http://localhost:8080/api/ticketssss/1/assignee
+  method: PUT
+  body:
+    type: json
+    content: "{\r
+
+      \    \"newAssigneeId\": 3,\r
+
+      \    \"actorId\": 1,\r
+
+      \    \"reason\": \"\"\r
+
+      }"
+response:
+  statusCode: 404
+  statusText: ""
+  headers:
+    content-type: application/json
+    transfer-encoding: chunked
+    date: Thu, 17 Sep 2026 06:48:24 GMT
+    keep-alive: timeout=60
+    connection: keep-alive
+  body:
+    type: json
+    content: |-
+      {
+        "timestamp": "2026-09-17T06:48:24.863Z",
+        "status": 404,
+        "error": "Not Found",
+        "path": "/api/ticketssss/1/assignee"
+      }
+order: 1789627710327

@@ -1,0 +1,34 @@
+$kind: http-example
+request:
+  url: http://localhost:8080/api/tickets/7/assignee
+  method: PUT
+  body:
+    type: json
+    content: "{\r
+
+      \    \"newAssigneeId\": 3,\r
+
+      \    \"actorId\": 1,\r
+
+      \    \"reason\": \"\"\r
+
+      }"
+response:
+  statusCode: 400
+  statusText: ""
+  headers:
+    content-type: application/json
+    transfer-encoding: chunked
+    date: Thu, 17 Sep 2026 04:34:10 GMT
+    connection: close
+  body:
+    type: json
+    content: |-
+      {
+        "code": "INVALID_ASSIGNMENT",
+        "message": "Phân công không hợp lệ",
+        "path": "/api/tickets/7/assignee",
+        "status": 400,
+        "timestamp": "2026-09-17T11:34:10.1449722"
+      }
+order: 1789619655033

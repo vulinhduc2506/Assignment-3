@@ -1,0 +1,17 @@
+$kind: http-request
+description: ""
+url: http://localhost:8080/api/tickets/3/assignee
+method: PUT
+body:
+  type: json
+  content: "{\r
+
+    \    \"newAssigneeId\": 33,\r
+
+    \    \"actorId\": 1,\r
+
+    \    \"reason\": \"\"\r
+
+    }"
+examples: .resources/Phân công cho Employee không tồn tại.resources/examples
+order: 4438144695989195

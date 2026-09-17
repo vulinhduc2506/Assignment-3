@@ -1,0 +1,41 @@
+$kind: http-example
+request:
+  url: http://localhost:8080/api/tickets/2/assignment-histories
+  method: GET
+response:
+  statusCode: 200
+  statusText: ""
+  headers:
+    content-type: application/json
+    transfer-encoding: chunked
+    date: Thu, 17 Sep 2026 06:23:45 GMT
+    keep-alive: timeout=60
+    connection: keep-alive
+  body:
+    type: json
+    content: |-
+      [
+        {
+          "changedAt": "2026-09-17T11:09:57.484041",
+          "changedById": 1,
+          "changedByName": "Nguyễn Báo Cáo",
+          "id": 4,
+          "newAssigneeId": 3,
+          "newAssigneeName": "Lê Chuyên Viên B",
+          "oldAssigneeId": 2,
+          "oldAssigneeName": "Trần Chuyên Viên A",
+          "reason": "Đổi người vì chuyên viên cũ đang nghỉ phép"
+        },
+        {
+          "changedAt": "2026-09-17T11:03:10.125405",
+          "changedById": 1,
+          "changedByName": "Nguyễn Báo Cáo",
+          "id": 3,
+          "newAssigneeId": 2,
+          "newAssigneeName": "Trần Chuyên Viên A",
+          "oldAssigneeId": null,
+          "oldAssigneeName": null,
+          "reason": null
+        }
+      ]
+order: 1789626229443

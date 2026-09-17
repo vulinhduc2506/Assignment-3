@@ -1,0 +1,35 @@
+$kind: http-example
+request:
+  url: http://localhost:8080/api/tickets/3/assignee
+  method: PUT
+  body:
+    type: json
+    content: "{\r
+
+      \    \"newAssigneeId\": 33,\r
+
+      \    \"actorId\": 1,\r
+
+      \    \"reason\": \"\"\r
+
+      }"
+response:
+  statusCode: 404
+  statusText: ""
+  headers:
+    content-type: application/json
+    transfer-encoding: chunked
+    date: Thu, 17 Sep 2026 06:44:16 GMT
+    keep-alive: timeout=60
+    connection: keep-alive
+  body:
+    type: json
+    content: |-
+      {
+        "code": "EMPLOYEE_NOT_FOUND",
+        "message": "Nhân viên không tồn tại",
+        "path": "/api/tickets/3/assignee",
+        "status": 404,
+        "timestamp": "2026-09-17T13:44:16.7276358"
+      }
+order: 1789627459284

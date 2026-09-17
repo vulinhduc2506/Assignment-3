@@ -1,0 +1,44 @@
+$kind: http-example
+request:
+  url: http://localhost:8080/api/tickets
+  method: POST
+  body:
+    type: json
+    content: "{\r
+
+      \  \"title\": \"Máy in tầng 3 bị kẹt giấy\",\r
+
+      \  \"description\": \"Màn hình báo lỗi, kẹt giấy bên trong cuộn cuốn.\",\r
+
+      \  \"priority\": \"HIGH\",\r
+
+      \  \"reporterId\": 1\r
+
+      }"
+response:
+  statusCode: 201
+  statusText: ""
+  headers:
+    content-type: application/json
+    transfer-encoding: chunked
+    date: Thu, 17 Sep 2026 07:10:45 GMT
+    keep-alive: timeout=60
+    connection: keep-alive
+  body:
+    type: json
+    content: |-
+      {
+        "assigneeName": null,
+        "comments": null,
+        "createdAt": "2026-09-17T14:10:45.598947",
+        "description": "Màn hình báo lỗi, kẹt giấy bên trong cuộn cuốn.",
+        "id": 13,
+        "priority": "HIGH",
+        "reporterName": "Nguyễn Báo Cáo",
+        "resolvedAt": null,
+        "status": "OPEN",
+        "statusHistory": null,
+        "ticketCode": "TCK-622B2356",
+        "title": "Máy in tầng 3 bị kẹt giấy"
+      }
+order: 1789629050226

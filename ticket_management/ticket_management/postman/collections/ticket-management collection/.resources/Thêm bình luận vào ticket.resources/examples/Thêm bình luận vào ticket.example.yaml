@@ -1,0 +1,32 @@
+$kind: http-example
+request:
+  url: http://localhost:8080/api/tickets/13/comments
+  method: POST
+  body:
+    type: json
+    content: "{\r
+
+      \  \"authorId\": 2,\r
+
+      \  \"content\": \"Anh đợi em 5 phút\"\r
+
+      }"
+response:
+  statusCode: 200
+  statusText: ""
+  headers:
+    content-type: application/json
+    transfer-encoding: chunked
+    date: Thu, 17 Sep 2026 07:15:20 GMT
+    keep-alive: timeout=60
+    connection: keep-alive
+  body:
+    type: json
+    content: |-
+      {
+        "authorName": "Trần Chuyên Viên A",
+        "content": "Anh đợi em 5 phút",
+        "createdAt": "2026-09-17T14:15:20.257867",
+        "id": 9
+      }
+order: 1789629334752

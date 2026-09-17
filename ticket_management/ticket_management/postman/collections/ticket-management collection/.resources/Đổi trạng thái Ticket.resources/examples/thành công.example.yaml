@@ -1,0 +1,42 @@
+$kind: http-example
+request:
+  url: http://localhost:8080/api/tickets/1/transitions
+  method: POST
+  body:
+    type: json
+    content: "{\r
+
+      \    \"actorId\": 2,\r
+
+      \    \"action\": \"START\",\r
+
+      \    \"note\": \"đã tiếp nhận và đi kiểm tra\"\r
+
+      }"
+response:
+  statusCode: 200
+  statusText: ""
+  headers:
+    content-type: application/json
+    transfer-encoding: chunked
+    date: Thu, 17 Sep 2026 07:38:59 GMT
+    keep-alive: timeout=60
+    connection: keep-alive
+  body:
+    type: json
+    content: |-
+      {
+        "assigneeName": "Trần Chuyên Viên A",
+        "comments": null,
+        "createdAt": "2026-09-06T10:19:22.214037",
+        "description": null,
+        "id": 1,
+        "priority": null,
+        "reporterName": "Nguyễn Báo Cáo",
+        "resolvedAt": null,
+        "status": "IN_PROGRESS",
+        "statusHistory": null,
+        "ticketCode": "TCK-001",
+        "title": "Lỗi màn hình"
+      }
+order: 1789630753282
