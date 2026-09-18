@@ -290,6 +290,9 @@ public class TicketService {
                 if (action == TicketAction.START && actorIsAssignee && hasAssignee) {
                     return TicketStatus.IN_PROGRESS;
                 }
+                if (action == TicketAction.CANCEL && actorIsReporter) {
+                    return TicketStatus.CANCELLED;
+                }
                 break;
 
             case IN_PROGRESS:
@@ -312,9 +315,7 @@ public class TicketService {
         throw new IllegalArgumentException("Thao tác chuyển trạng thái không hợp lệ");
     }
 
-    private boolean isValidNote(String note) {
-        return note != null && !note.trim().isBlank();
-    }
+
 
     @Transactional
     public List<AssignmentHistoryResponse> getAssignmentHistories(Long ticketId) {
@@ -341,4 +342,138 @@ public class TicketService {
                         .build())
                 .toList();
     }
+
+    @Transactional
+    public TicketResponse cancelTicket(Long ticketId, Long actorId) {
+        Ticket ticket = ticketRepository.findWithUsersById(ticketId)
+                .orElseThrow(()-> new AppException(ErrorCode.TICKET_NOT_FOUND));
+
+        if (ticket.getStatus() != TicketStatus.OPEN) {
+            throw new AppException(ErrorCode.INVALID_STATUS_TRANSITION);
+        }
+
+        Employee actor = employeeRepository.findById(actorId)
+                .orElseThrow(()-> new AppException(ErrorCode.EMPLOYEE_NOT_FOUND));
+        if (!actor.isActive()) {
+            throw new AppException(ErrorCode.EMPLOYEE_INACTIVE);
+        }
+
+        boolean hasAssignee = ticket.getAssignee() != null;
+        boolean actorIsAssignee = hasAssignee && ticket.getAssignee().getId().equals(actor.getId());
+        boolean actorIsReporter = ticket.getReporter().getId().equals(actor.getId());
+
+        TicketStatus nextStatus;
+        try {
+            nextStatus = determineNextStatus(
+                    ticket.getStatus(),
+                    TicketAction.CANCEL,
+                    hasAssignee,
+                    actorIsAssignee,
+                    actorIsReporter,
+                    "Người dùng tự hủy"
+            );
+        } catch (IllegalArgumentException e) {
+            throw new AppException(ErrorCode.INVALID_STATUS_TRANSITION);
+        }
+        // 5. Ghi lịch sử chuyển trạng thái
+        TicketStatusHistory history = new TicketStatusHistory();
+        history.setTicket(ticket);
+        history.setFromStatus(ticket.getStatus());
+        history.setToStatus(nextStatus); // Dùng kết quả trả ra từ trạm kiểm soát
+        history.setChangedBy(actor);
+        history.setNote("Người dùng tự hủy vé");
+        ticketStatusHistoryRepository.save(history);
+
+        // 6. Cập nhật trạng thái vé (Không gọi save nhờ Dirty Checking)
+        ticket.setStatus(nextStatus);
+
+        // 7. Đóng gói DTO
+        return TicketResponse.builder()
+                .id(ticket.getId())
+                .ticketCode(ticket.getTicketCode())
+                .title(ticket.getTitle())
+                .status(ticket.getStatus())
+                .reporterName(ticket.getReporter().getFullName())
+                .assigneeName(hasAssignee ? ticket.getAssignee().getFullName() : null)
+                .createdAt(ticket.getCreatedAt())
+                .build();
+    }
+
+    // kiểm tra xem ticket vi phạm SLA chưa
+    public boolean isSlaBreached(Priority priority, LocalDateTime createdAt, LocalDateTime resolvedAt, LocalDateTime currentTime) {
+        if (createdAt == null || priority == null || currentTime == null) {
+            throw new IllegalArgumentException("ko đc để trống");
+        }
+
+        int slaHours = getSlaHours(priority);
+        LocalDateTime deadLine = createdAt.plusHours(slaHours);
+
+        LocalDateTime checkTime = (resolvedAt != null) ? resolvedAt : currentTime;
+
+        return checkTime.isAfter(deadLine);
+    }
+
+    private int getSlaHours(Priority priority) {
+        return switch (priority) {
+            case LOW -> 72;
+            case MEDIUM -> 48;
+            case HIGH -> 24;
+            case URGENT -> 4;
+            default -> throw new IllegalArgumentException("sai độ ưu tiên");
+        };
+    }
+
+    // kiểm tra điều kiện reopen
+    public void validateReopenEligibility(LocalDateTime resolvedAt, LocalDateTime currentTime) {
+        if (resolvedAt == null || currentTime == null) {
+            throw new IllegalArgumentException("Thời gian ko hợp lệ");
+        }
+
+        long daysSinceResolved = java.time.temporal.ChronoUnit.DAYS.between(resolvedAt, currentTime);
+
+        if (daysSinceResolved > 7) {
+            throw new IllegalArgumentException("qua 7 ngay");
+        }
+        if (daysSinceResolved < 0) {
+            throw new IllegalArgumentException("thoi gian he thong loi");
+        }
+    }
+
+    public String validateAndNormalizeAssignment(
+            TicketStatus status,
+            Long oldAssigneeId,
+            Long newAssigneeId,
+            boolean newAssigneeActive,
+            String reason
+    ) {
+        if (status == TicketStatus.CLOSED) {
+            throw new  IllegalArgumentException();
+        }
+        if (newAssigneeId == null) {
+            throw new  IllegalArgumentException();
+        }
+        if (newAssigneeId != null) {
+            if (newAssigneeActive == false) {
+                throw new  IllegalArgumentException();
+            }
+        }
+        if (oldAssigneeId == newAssigneeId) {
+            throw new  IllegalArgumentException();
+        }
+        if (oldAssigneeId == null) {
+            if (!isValidNote(reason)) {
+                reason = null;
+            }
+        } else if (oldAssigneeId != null) {
+            if (!isValidNote(reason)) {
+                throw new  IllegalArgumentException();
+            }
+        }
+        return reason;
+    }
+
+    private boolean isValidNote(String note) {
+        return note != null && !note.trim().isBlank();
+    }
+
 }
