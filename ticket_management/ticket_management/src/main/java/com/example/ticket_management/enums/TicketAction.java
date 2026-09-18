@@ -4,5 +4,6 @@ public enum TicketAction {
     START,
     RESOLVE,
     CLOSE,
-    REOPEN
+    REOPEN,
+    CANCEL
 }
