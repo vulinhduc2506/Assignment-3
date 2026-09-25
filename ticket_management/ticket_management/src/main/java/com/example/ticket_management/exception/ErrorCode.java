@@ -14,7 +14,8 @@ public enum ErrorCode {
     CONCURRENT_UPDATE(HttpStatus.CONFLICT, "Dữ liệu đã bị thay đổi"),
     INVALID_REQUEST(HttpStatus.BAD_REQUEST, "Request thiếu hoặc sai dữ liệu"),
     INVALID_ASSIGNMENT(HttpStatus.BAD_REQUEST, "Phân công không hợp lệ"),
-    INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "Lỗi không dự kiến phía server");
+    INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "Lỗi không dự kiến phía server"),
+    INVALID_CREDENTIALS(HttpStatus.UNAUTHORIZED, "Mật khẩu không chính xác");
 
     private final HttpStatus status;
     private final String message;

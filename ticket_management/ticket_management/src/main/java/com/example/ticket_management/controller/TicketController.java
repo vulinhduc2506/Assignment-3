@@ -17,6 +17,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -43,7 +45,11 @@ public class TicketController {
     public ResponseEntity<TicketAssignmentResponse> assignTicket(
             @PathVariable Long id,
             @Valid @RequestBody TicketAssignRequest request) {
-        TicketAssignmentResponse response = ticketService.assignTicket(id, request);
+        // Lấy danh tính (employeeId) đã được xác thực từ JWT
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Long employeeIdFromToken = (Long) authentication.getCredentials();
+        String roleFromToken = authentication.getAuthorities().iterator().next().getAuthority().replace("ROLE_", "");
+        TicketAssignmentResponse response = ticketService.assignTicket(id, request, employeeIdFromToken, roleFromToken);
         return ResponseEntity.ok(response);
     }
 

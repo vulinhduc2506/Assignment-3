@@ -1,5 +1,6 @@
 package com.example.ticket_management.entity;
 
+import com.example.ticket_management.enums.Role;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -31,6 +32,12 @@ public class Employee {
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
+
+    @Column(name = "password_hash", nullable = false)
+    private String passwordHash;
+
+    @Enumerated(EnumType.STRING)
+    private Role role;
 
     public Employee() {
     }

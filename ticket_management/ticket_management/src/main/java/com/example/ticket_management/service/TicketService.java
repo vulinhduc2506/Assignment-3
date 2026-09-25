@@ -20,7 +20,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -107,10 +106,11 @@ public class TicketService {
     }
 
     @Transactional
-    public TicketAssignmentResponse assignTicket(Long ticketId, TicketAssignRequest request) {
+    public TicketAssignmentResponse assignTicket(Long ticketId, TicketAssignRequest request, Long employeeIdFromToken, String roleFromToken) {
         Ticket ticket = ticketRepository.findWithUsersById(ticketId)
                 .orElseThrow(() -> new AppException(ErrorCode.TICKET_NOT_FOUND));
 
+        validateActor(request.getActorId(), employeeIdFromToken, roleFromToken);
         if (ticket.getStatus() == TicketStatus.CLOSED) {
             throw new AppException(ErrorCode.INVALID_STATUS_TRANSITION);
         }
@@ -447,33 +447,42 @@ public class TicketService {
             String reason
     ) {
         if (status == TicketStatus.CLOSED) {
-            throw new  IllegalArgumentException();
+            throw new  IllegalArgumentException("Ticket đã đóng, không thể phân công.");
         }
-        if (newAssigneeId == null) {
-            throw new  IllegalArgumentException();
+        if (newAssigneeId == null || !newAssigneeActive) {
+            throw new  IllegalArgumentException("Người được phân công không hợp lệ hoặc đang vô hiệu hóa.");
         }
-        if (newAssigneeId != null) {
-            if (newAssigneeActive == false) {
-                throw new  IllegalArgumentException();
-            }
+        if (newAssigneeId.equals(oldAssigneeId)) {
+                throw new  IllegalArgumentException("Không thể phân công lại cho người đang xử lý hiện tại.");
         }
-        if (oldAssigneeId == newAssigneeId) {
-            throw new  IllegalArgumentException();
-        }
+
+        String normalizedReason = (reason == null || reason.trim().isEmpty()) ? null : reason.trim();
+
         if (oldAssigneeId == null) {
-            if (!isValidNote(reason)) {
-                reason = null;
+            return normalizedReason;
+        } else {
+            if (normalizedReason == null) {
+                throw new IllegalArgumentException("Bắt buộc phải nhập lý do khi phân công lại Ticket.");
             }
-        } else if (oldAssigneeId != null) {
-            if (!isValidNote(reason)) {
-                throw new  IllegalArgumentException();
-            }
+            return normalizedReason;
         }
-        return reason;
     }
 
     private boolean isValidNote(String note) {
         return note != null && !note.trim().isBlank();
     }
 
+    public void validateActor(Long actorIdFromRequest, Long actorIdFromToken, String roleFromToken) {
+        if (actorIdFromRequest == null || actorIdFromToken == null) {
+            throw new IllegalArgumentException("ActorId tu reuqest va token ko dc null");
+        }
+
+        if ("ADMIN".equals(roleFromToken)) {
+            return;
+        }
+
+        if (!actorIdFromRequest.equals(actorIdFromToken)) {
+            throw new IllegalArgumentException("actorId tu request va token phai trung nhau");
+        }
+    }
 }

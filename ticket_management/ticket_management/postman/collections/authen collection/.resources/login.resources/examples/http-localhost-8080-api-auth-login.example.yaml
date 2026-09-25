@@ -1,0 +1,40 @@
+$kind: http-example
+name: http://localhost:8080/api/auth/login
+request:
+  url: http://localhost:8080/api/auth/login
+  method: POST
+  body:
+    type: json
+    content: "{\r
+
+      \    \"username\": \"employee01\",\r
+
+      \    \"password\": \"password-dev\"\r
+
+      }"
+response:
+  statusCode: 401
+  statusText: ""
+  headers:
+    x-content-type-options: nosniff
+    x-xss-protection: "0"
+    cache-control: no-cache, no-store, max-age=0, must-revalidate
+    pragma: no-cache
+    expires: "0"
+    x-frame-options: DENY
+    content-type: application/json
+    transfer-encoding: chunked
+    date: Fri, 25 Sep 2026 04:08:27 GMT
+    keep-alive: timeout=60
+    connection: keep-alive
+  body:
+    type: json
+    content: |-
+      {
+        "code": "INVALID_CREDENTIALS",
+        "message": "Mật khẩu không chính xác",
+        "path": "/api/auth/login",
+        "status": 401,
+        "timestamp": "2026-09-25T11:08:27.4473681"
+      }
+order: 1790309916277

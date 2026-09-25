@@ -1,16 +1,16 @@
 $kind: http-request
 description: ""
-url: http://localhost:8080/api/tickets/13/transitions
+url: http://localhost:8080/api/tickets/4/transitions
 method: POST
 body:
   type: json
   content: "{\r
 
-    \    \"actorId\": 1,\r
+    \    \"actorId\": 2,\r
 
-    \    \"action\": \"START\",\r
+    \    \"action\": \"RESOLVE\",\r
 
-    \    \"note\": \"đã tiếp nhận và đi kiểm tra\"\r
+    \    \"note\": \"đóng\"\r
 
     }"
 examples: .resources/Đổi trạng thái Ticket.resources/examples
